@@ -1,0 +1,179 @@
+﻿@page "/"
+@using PruebaTecnica.Data;
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<h1>Elementos</h1>
+
+<div class="form-group">
+    <label for="minCalorias">Minimo Calorias:</label>
+    <input type="text" id="minCalorias" class="form-control" @bind="minCalorias" required min="1" />
+</div>
+<div class="form-group">
+    <label for="maxPeso">Peso maximo:</label>
+    <input type="text" id="maxPeso" class="form-control" @bind="maxPeso" required min="1" />
+</div>
+<div class="form-group">
+    <label for="Nombre">Nombre:</label>
+    <input type="text" id="Nombre" class="form-control" @bind-value="elemento.Nombre" required />
+</div>
+<div class="form-group">
+    <label for="Calorias">Calorias:</label>
+    <input type="text" id="Calorias" class="form-control" @bind-value="elemento.Calorias" required min="1" />
+</div>
+<div class="form-group">
+    <label for="Peso">Peso:</label>
+    <input type="text" id="Peso" class="form-control" @bind-value="elemento.Peso" required min="1" />
+</div>
+
+<div class="form-group">
+    <button class="btn btn-secondary" @onclick="@Limpiar">Limpiar</button>
+    <button class="btn btn-secondary" @onclick="@AgregarElemento">Agregar Elementos</button>
+    <button class="btn btn-primary" @onclick="@Calcular">Calcular</button>
+    
+</div>
+
+@if (ListaElementos.Count()>0)
+{
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Calorias</th>
+            <th>Peso</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var e in ListaElementos)
+        {
+            <tr>
+                <td>@e.Nombre</td>
+                <td>@e.Calorias</td>
+                <td>@e.Peso</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+}else
+{
+        <label>Ingrese elementos.</label>
+}
+
+@if (elementosSeleccionados.Count()>0)
+{
+    <label>Elementos seleccionados</label>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Calorías</th>
+            <th>Peso</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var e in elementosSeleccionados)
+        {
+            <tr>
+                <td>@e.Nombre</td>
+                <td>@e.Calorias</td>
+                <td>@e.Peso</td>
+            </tr>
+        }
+    </tbody>
+</table>
+    <button class="btn btn-primary" @onclick="@GuardarElementos">Guardar elementos</button>
+ }
+
+@code {
+    private int minCalorias;
+    private int maxPeso;
+    private Elemento elemento = new Elemento();
+
+    private List<Elemento> elementosSeleccionados = new List<Elemento>();
+    private List<Elemento> ListaElementos = new List<Elemento>();
+
+    private void Calcular()
+    {
+        elementosSeleccionados = Resolver(ListaElementos, maxPeso);
+    }
+    private async Task Limpiar()
+    {
+        ListaElementos = new List<Elemento>();
+        elementosSeleccionados = new List<Elemento>();
+        
+    }
+    private async Task AgregarElemento()
+        {
+            Elemento element = new Elemento();
+            element.Nombre = elemento.Nombre;
+            element.Calorias = elemento.Calorias;
+            element.Peso = elemento.Peso;
+            ListaElementos.Add(element);
+        }
+    private async Task GuardarElementos()
+    {
+        
+        
+    }
+    static List<Elemento> Resolver(List<Elemento> items, int capacidad)
+    {
+        int n = items.Count;
+        int[,] combinaciones = new int[n + 1, capacidad + 1];
+
+        for (int i = 1; i <= n; i++)
+        {
+            int peso = items[i - 1].Peso;
+            int calorias = items[i - 1].Calorias;
+            for (int pes = 1; pes <= capacidad; pes++)
+            {
+                if (peso > pes)
+                {
+                    combinaciones[i, pes] = combinaciones[i - 1, pes];
+                }
+                else
+                {
+                    combinaciones[i, pes] = Math.Max(combinaciones[i - 1, pes], combinaciones[i - 1, pes - peso] + calorias);
+                }
+            }
+        }
+
+        //Imprimir combinaciones
+
+        // Obtener la longitud de las dimensiones de la matriz
+        int filas = combinaciones.GetLength(0);
+        int columnas = combinaciones.GetLength(1);
+
+
+        for (int i = 0; i < filas; i++)
+        {
+            // Ciclo para recorrer cada columna
+            for (int j = 0; j < columnas; j++)
+            {
+                Console.Write(combinaciones[i, j] + "\t");
+            }
+            // Salto de línea después de imprimir cada fila
+            Console.WriteLine();
+        }
+
+
+        List<Elemento> elementosOptimos = new List<Elemento>();
+
+        int capRestante = capacidad;
+        for (int i = n; i > 0; i--)
+        {
+            if (combinaciones[i, capRestante] != combinaciones[i - 1, capRestante])
+            {
+                int peso = items[i - 1].Peso;
+                Elemento element = new Elemento();
+                element.Nombre = items[i - 1].Nombre;
+                element.Calorias = items[i - 1].Calorias;
+                element.Peso = items[i - 1].Peso;
+                
+                elementosOptimos.Add(element);
+                capRestante -= peso;
+            }
+        }
+
+        return elementosOptimos;
+    }
+    }
+

@@ -1,0 +1,1 @@
+C:\Users\ad\source\repos\PruebaTecnica\PruebaTecnica\PruebaTecnica.csproj;x64
